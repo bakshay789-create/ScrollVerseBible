@@ -42,7 +42,6 @@ jobs:
 
       - name: Verify project ZIP
         run: |
-          ls -la
           test -f ScrollVerseBible_Android_Starter.zip
           unzip -t ScrollVerseBible_Android_Starter.zip
 
