@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'ScrollVerseBible_Android_Starter.zip'
+      - 'ScrollVerseBible_Android_Starter_JVM17_Fixed.zip'
       - '.github/workflows/build-apk.yml'
 
 permissions:
