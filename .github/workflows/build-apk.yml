@@ -54,58 +54,42 @@ jobs:
           mkdir -p android-project
           unzip -q ScrollVerseBible_Android_Starter.zip -d android-project
 
+      - name: Locate Android project
+        run: |
+          if [ -f android-project/settings.gradle.kts ]; then
+            echo "PROJECT_DIR=android-project" >> "$GITHUB_ENV"
+          else
+            DIR=$(find android-project -name settings.gradle.kts -print -quit)
+            if [ -z "$DIR" ]; then
+              echo "ERROR: settings.gradle.kts not found in ZIP"
+              exit 1
+            fi
+            echo "PROJECT_DIR=$(dirname "$DIR")" >> "$GITHUB_ENV"
+          fi
+
       - name: Verify project structure
         run: |
-          test -f android-project/settings.gradle.kts
-          test -f android-project/build.gradle.kts
-          test -f android-project/app/build.gradle.kts
-          test -f android-project/app/src/main/AndroidManifest.xml
+          test -f "$PROJECT_DIR/settings.gradle.kts"
+          test -f "$PROJECT_DIR/app/build.gradle.kts"
+          test -f "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
           echo "Project structure verified."
 
       - name: Build debug APK
         run: |
-          gradle -p android-project \
+          gradle -p "$PROJECT_DIR" \
             :app:assembleDebug \
             --no-daemon \
             --stacktrace
 
       - name: Verify APK
         run: |
-          test -f android-project/app/build/outputs/apk/debug/app-debug.apk
-          ls -lh android-project/app/build/outputs/apk/debug/app-debug.apk
+          test -f "$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
+          ls -lh "$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: ScrollVerse-debug-APK
-          path: android-project/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
-
-### 2. Replace the file on GitHub
-
-On your Android phone:
-
-1. Open your GitHub repository, `ScrollVerseBible`.
-2. Open `.github/workflows/build-apk.yml`.
-3. Tap the pencil icon to edit.
-4. Select the existing file contents and replace them with the complete YAML above. Copy only the YAML text, not the surrounding explanation or Markdown code fences.
-5. Scroll down and commit the changes to the `main` branch.
-
-### 3. Check your ZIP filename
-
-Your repository must contain this file at its root:
-
-`ScrollVerseBible_Android_Starter.zip`
-
-**Important:** The ZIP must contain the updated Android project, not the old starter project. Updating the workflow alone will not add the new Bible study plan, themes, icon, or other app features.
-
-### 4. Build and download the APK
-
-1. Open **Actions** in GitHub.
-2. Select **Build ScrollVerse APK**.
-3. Open the latest run and wait for a green check mark.
-4. Under **Artifacts**, download `ScrollVerse-debug-APK`.
-5. Extract the downloaded artifact ZIP and install `app-debug.apk` on your phone.
-
-If the build fails, send me a screenshot of the failed step. We can then fix the specific error without changing unrelated parts of your project.
